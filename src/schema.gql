@@ -7,18 +7,105 @@ type AuthResponse {
   refreshToken: String!
 }
 
+type BookingEntity {
+  checkIn: DateTime!
+  checkOut: DateTime!
+  createdAt: DateTime!
+  id: String!
+  roomId: String!
+  status: BookingStatus!
+  totalPrice: Float!
+  updatedAt: DateTime!
+  userId: String!
+}
+
+"""Status of a booking"""
+enum BookingStatus {
+  CANCELLED
+  CONFIRMED
+  PENDING
+}
+
+input CreateBookingInput {
+  checkIn: DateTime!
+  checkOut: DateTime!
+  roomId: String!
+}
+
+input CreateHotelInput {
+  amenities: [String!]
+  city: String!
+  country: String!
+  description: String
+  images: [String!]
+  location: String!
+  name: String!
+}
+
+input CreateRoomInput {
+  capacity: Int!
+  description: String
+  hotelId: String!
+  images: [String!]
+  name: String!
+  price: Float!
+  type: RoomType!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type HotelEntity {
+  amenities: [String!]!
+  city: String!
+  country: String!
+  createdAt: DateTime!
+  description: String
+  id: String!
+  images: [String!]!
+  location: String!
+  name: String!
+  ownerId: String!
+  rating: Float
+  updatedAt: DateTime!
+}
+
 input LoginInput {
   email: String!
   password: String!
 }
 
 type Mutation {
+  cancelBooking(id: String!, userId: String!): BookingEntity!
+  createBooking(input: CreateBookingInput!, userId: String!): BookingEntity!
+  createHotel(input: CreateHotelInput!, ownerId: String!): HotelEntity!
+  createRoom(input: CreateRoomInput!, userId: String!): RoomEntity!
   login(input: LoginInput!): AuthResponse!
   register(input: RegisterInput!): AuthResponse!
+  removeHotel(id: String!, userId: String!): Boolean!
+  removeRoom(id: String!, userId: String!): Boolean!
+  removeUser(id: String!): Boolean!
+  updateHotel(id: String!, input: UpdateHotelInput!, userId: String!): HotelEntity!
+  updateRoom(id: String!, input: UpdateRoomInput!, userId: String!): RoomEntity!
+  updateUser(id: String!, input: UpdateUserInput!): UserEntity!
 }
 
 type Query {
   _empty: String!
+  checkRoomAvailability(checkIn: DateTime!, checkOut: DateTime!, roomId: String!): Boolean!
+  findAllHotels: [HotelEntity!]!
+  findAllUsers: [UserEntity!]!
+  findBooking(id: String!, userId: String!): BookingEntity!
+  findHotel(id: String!): HotelEntity!
+  findRoom(id: String!): RoomEntity!
+  findRoomsByHotel(hotelId: String!): [RoomEntity!]!
+  findUser(id: String!): UserEntity!
+  myBookings(userId: String!): [BookingEntity!]!
+  myHotels(ownerId: String!): [HotelEntity!]!
+  roomBookings(roomId: String!, userId: String!): [BookingEntity!]!
+  searchHotels(city: String, country: String): [HotelEntity!]!
 }
 
 input RegisterInput {
@@ -26,4 +113,67 @@ input RegisterInput {
   firstName: String!
   lastName: String!
   password: String!
+}
+
+"""User roles"""
+enum Role {
+  ADMIN
+  GUEST
+  HOST
+}
+
+type RoomEntity {
+  capacity: Int!
+  createdAt: DateTime!
+  description: String
+  hotelId: String!
+  id: String!
+  images: [String!]!
+  name: String!
+  price: Float!
+  type: RoomType!
+  updatedAt: DateTime!
+}
+
+"""Type of room"""
+enum RoomType {
+  DELUXE
+  DOUBLE
+  SINGLE
+  SUITE
+}
+
+input UpdateHotelInput {
+  amenities: [String!]
+  city: String
+  country: String
+  description: String
+  images: [String!]
+  location: String
+  name: String
+}
+
+input UpdateRoomInput {
+  capacity: Int
+  description: String
+  images: [String!]
+  name: String
+  price: Float
+  type: RoomType
+}
+
+input UpdateUserInput {
+  email: String
+  firstName: String
+  lastName: String
+}
+
+type UserEntity {
+  createdAt: DateTime!
+  email: String!
+  firstName: String!
+  id: String!
+  lastName: String!
+  role: Role!
+  updatedAt: DateTime!
 }

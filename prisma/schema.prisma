@@ -18,6 +18,7 @@ model User {
   lastName     String
   role         Role      @default(GUEST)
   refreshToken String?
+  hotels       Hotel[]  
   bookings     Booking[]
   reviews      Review[]
   createdAt    DateTime  @default(now())
@@ -30,6 +31,8 @@ model User {
 model Hotel {
   id          String   @id @default(uuid())
   name        String
+  ownerId     String                         // ← who owns this hotel
+  owner       User     @relation(fields: [ownerId], references: [id])
   description String?
   location    String
   city        String
