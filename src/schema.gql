@@ -42,6 +42,12 @@ input CreateHotelInput {
   name: String!
 }
 
+input CreateReviewInput {
+  comment: String!
+  hotelId: String!
+  rating: Int!
+}
+
 input CreateRoomInput {
   capacity: Int!
   description: String
@@ -81,10 +87,12 @@ type Mutation {
   cancelBooking(id: String!, userId: String!): BookingEntity!
   createBooking(input: CreateBookingInput!, userId: String!): BookingEntity!
   createHotel(input: CreateHotelInput!, ownerId: String!): HotelEntity!
+  createReview(input: CreateReviewInput!, userId: String!): ReviewEntity!
   createRoom(input: CreateRoomInput!, userId: String!): RoomEntity!
   login(input: LoginInput!): AuthResponse!
   register(input: RegisterInput!): AuthResponse!
   removeHotel(id: String!, userId: String!): Boolean!
+  removeReview(id: String!, userId: String!): Boolean!
   removeRoom(id: String!, userId: String!): Boolean!
   removeUser(id: String!): Boolean!
   updateHotel(id: String!, input: UpdateHotelInput!, userId: String!): HotelEntity!
@@ -102,8 +110,10 @@ type Query {
   findRoom(id: String!): RoomEntity!
   findRoomsByHotel(hotelId: String!): [RoomEntity!]!
   findUser(id: String!): UserEntity!
+  hotelReviews(hotelId: String!): [ReviewEntity!]!
   myBookings(userId: String!): [BookingEntity!]!
   myHotels(ownerId: String!): [HotelEntity!]!
+  myReviews(userId: String!): [ReviewEntity!]!
   roomBookings(roomId: String!, userId: String!): [BookingEntity!]!
   searchHotels(city: String, country: String): [HotelEntity!]!
 }
@@ -113,6 +123,15 @@ input RegisterInput {
   firstName: String!
   lastName: String!
   password: String!
+}
+
+type ReviewEntity {
+  comment: String!
+  createdAt: DateTime!
+  hotelId: String!
+  id: String!
+  rating: Int!
+  userId: String!
 }
 
 """User roles"""
