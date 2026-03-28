@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────────────────────
+// USER
+// ───────────────────────────
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  password     String
+  firstName    String
+  lastName     String
+  role         Role      @default(GUEST)
+  refreshToken String?
+  bookings     Booking[]
+  reviews      Review[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+// ───────────────────────────
+// HOTEL
+// ───────────────────────────
+model Hotel {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  location    String
+  city        String
+  country     String
+  amenities   String[]
+  images      String[]
+  rating      Float?   @default(0)
+  rooms       Room[]
+  reviews     Review[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ───────────────────────────
+// ROOM
+// ───────────────────────────
+model Room {
+  id          String    @id @default(uuid())
+  hotelId     String
+  hotel       Hotel     @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  name        String
+  type        RoomType
+  price       Decimal   @db.Decimal(10, 2)
+  capacity    Int
+  description String?
+  images      String[]
+  bookings    Booking[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ───────────────────────────
+// BOOKING
+// ───────────────────────────
+model Booking {
+  id          String        @id @default(uuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  roomId      String
+  room        Room          @relation(fields: [roomId], references: [id])
+  checkIn     DateTime
+  checkOut    DateTime
+  totalPrice  Decimal       @db.Decimal(10, 2)
+  status      BookingStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+// ───────────────────────────
+// REVIEW
+// ───────────────────────────
+model Review {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  hotelId   String
+  hotel     Hotel    @relation(fields: [hotelId], references: [id])
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+}
+
+// ───────────────────────────
+// ENUMS
+// ───────────────────────────
+enum Role {
+  GUEST
+  HOST
+  ADMIN
+}
+
+enum RoomType {
+  SINGLE
+  DOUBLE
+  SUITE
+  DELUXE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
