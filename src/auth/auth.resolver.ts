@@ -8,10 +8,6 @@ import { LoginInput } from './dto/login.dto';
 export class AuthResolver {
   constructor(private authService: AuthService) {}
 
-  @Query(() => String)
-  _empty() {
-    return "GraphQL is working";
-  }
 
   @Mutation(() => AuthResponse)
   register(@Args('input') input: RegisterInput) {

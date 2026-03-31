@@ -6,11 +6,15 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { BookingGateway } from '../gateway/gateway.gateway';
 import { CreateBookingInput } from './dto/create-booking.dto';
 
 @Injectable()
 export class BookingsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private gateway: BookingGateway,  // ← inject gateway
+  ) {}
 
   // ─── CREATE BOOKING ──────────────────────────
   async create(input: CreateBookingInput, userId: string) {
@@ -26,14 +30,15 @@ export class BookingsService {
     }
 
     // 2. Use transaction to prevent double booking
-    return this.prisma.$transaction(async (tx) => {
+    const booking = await this.prisma.$transaction(async (tx) => {
       // 3. Find the room
       const room = await tx.room.findUnique({
         where: { id: roomId },
+        include: { hotel: true },  // ← include hotel for hotelId
       });
       if (!room) throw new NotFoundException('Room not found');
 
-      // 4. Check for conflicting bookings
+      // 4. Check for conflicts
       const conflict = await tx.booking.findFirst({
         where: {
           roomId,
@@ -45,22 +50,21 @@ export class BookingsService {
         },
       });
 
-      // 5. If conflict found throw error
       if (conflict) {
         throw new ConflictException(
           'Room is already booked for these dates',
         );
       }
 
-      // 6. Calculate total price
+      // 5. Calculate total price
       const nights = Math.ceil(
         (checkOut.getTime() - checkIn.getTime()) /
         (1000 * 60 * 60 * 24),
       );
       const totalPrice = Number(room.price) * nights;
 
-      // 7. Create the booking
-      return tx.booking.create({
+      // 6. Create booking
+      const newBooking = await tx.booking.create({
         data: {
           userId,
           roomId,
@@ -70,7 +74,47 @@ export class BookingsService {
           status: 'CONFIRMED',
         },
       });
+
+      // 7. Emit real-time event ─────────────────
+      this.gateway.notifyRoomBooked(room.hotel.id, roomId);
+
+      return newBooking;
     });
+
+    return booking;
+  }
+
+  // ─── CANCEL BOOKING ──────────────────────────
+  async cancel(id: string, userId: string) {
+    const booking = await this.findOne(id, userId);
+
+    if (booking.status === 'CANCELLED') {
+      throw new BadRequestException('Booking is already cancelled');
+    }
+
+    if (booking.checkIn < new Date()) {
+      throw new BadRequestException(
+        'Cannot cancel a booking that has already started',
+      );
+    }
+
+    const updated = await this.prisma.booking.update({
+      where: { id },
+      data: { status: 'CANCELLED' },
+      include: {
+        room: {
+          include: { hotel: true },
+        },
+      },
+    });
+
+    // emit real-time event ──────────────────────
+    this.gateway.notifyRoomAvailable(
+      updated.room.hotel.id,
+      updated.roomId,
+    );
+
+    return updated;
   }
 
   // ─── GET MY BOOKINGS ─────────────────────────
@@ -80,9 +124,7 @@ export class BookingsService {
       orderBy: { createdAt: 'desc' },
       include: {
         room: {
-          include: {
-            hotel: true,  // include hotel info inside room
-          },
+          include: { hotel: true },
         },
       },
     });
@@ -101,7 +143,6 @@ export class BookingsService {
 
     if (!booking) throw new NotFoundException('Booking not found');
 
-    // users can only see their own bookings
     if (booking.userId !== userId) {
       throw new ForbiddenException('Access denied');
     }
@@ -109,31 +150,8 @@ export class BookingsService {
     return booking;
   }
 
-  // ─── CANCEL BOOKING ──────────────────────────
-  async cancel(id: string, userId: string) {
-    const booking = await this.findOne(id, userId);
-
-    // cannot cancel already cancelled booking
-    if (booking.status === 'CANCELLED') {
-      throw new BadRequestException('Booking is already cancelled');
-    }
-
-    // cannot cancel past bookings
-    if (booking.checkIn < new Date()) {
-      throw new BadRequestException(
-        'Cannot cancel a booking that has already started',
-      );
-    }
-
-    return this.prisma.booking.update({
-      where: { id },
-      data: { status: 'CANCELLED' },
-    });
-  }
-
-  // ─── GET ALL BOOKINGS FOR A ROOM (HOST) ──────
+  // ─── GET BOOKINGS FOR A ROOM ─────────────────
   async findByRoom(roomId: string, userId: string) {
-    // make sure the user owns the hotel this room belongs to
     const room = await this.prisma.room.findUnique({
       where: { id: roomId },
       include: { hotel: true },

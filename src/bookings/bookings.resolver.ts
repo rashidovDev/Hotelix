@@ -1,53 +1,59 @@
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { UseGuards } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { BookingEntity } from './entities/booking.entity';
 import { CreateBookingInput } from './dto/create-booking.dto';
+import { JwtGuard } from '../auth/guards/jwt.guard';
+import { CurrentUser } from 'src/auth/decorator/current-user.decorator';
 
 @Resolver(() => BookingEntity)
 export class BookingsResolver {
   constructor(private bookingsService: BookingsService) {}
 
-  // ─── CREATE BOOKING ──────────────────────────
+  // protected — must be logged in to book
+  @UseGuards(JwtGuard)
   @Mutation(() => BookingEntity)
   createBooking(
     @Args('input') input: CreateBookingInput,
-    @Args('userId') userId: string, // temporary — later from JWT
+    @CurrentUser() user: any,
   ) {
-    return this.bookingsService.create(input, userId);
+    return this.bookingsService.create(input, user.id);
   }
 
-  // ─── GET MY BOOKINGS ─────────────────────────
+  // protected — see your own bookings
+  @UseGuards(JwtGuard)
   @Query(() => [BookingEntity])
-  myBookings(
-    @Args('userId') userId: string, // temporary — later from JWT
-  ) {
-    return this.bookingsService.findMyBookings(userId);
+  myBookings(@CurrentUser() user: any) {
+    return this.bookingsService.findMyBookings(user.id);
   }
 
-  // ─── GET ONE BOOKING ─────────────────────────
+  // protected
+  @UseGuards(JwtGuard)
   @Query(() => BookingEntity)
   findBooking(
     @Args('id') id: string,
-    @Args('userId') userId: string, // temporary — later from JWT
+    @CurrentUser() user: any,
   ) {
-    return this.bookingsService.findOne(id, userId);
+    return this.bookingsService.findOne(id, user.id);
   }
 
-  // ─── CANCEL BOOKING ──────────────────────────
+  // protected
+  @UseGuards(JwtGuard)
   @Mutation(() => BookingEntity)
   cancelBooking(
     @Args('id') id: string,
-    @Args('userId') userId: string, // temporary — later from JWT
+    @CurrentUser() user: any,
   ) {
-    return this.bookingsService.cancel(id, userId);
+    return this.bookingsService.cancel(id, user.id);
   }
 
-  // ─── GET BOOKINGS FOR A ROOM ─────────────────
+  // protected — HOST sees bookings for their room
+  @UseGuards(JwtGuard)
   @Query(() => [BookingEntity])
   roomBookings(
     @Args('roomId') roomId: string,
-    @Args('userId') userId: string, // temporary — later from JWT
+    @CurrentUser() user: any,
   ) {
-    return this.bookingsService.findByRoom(roomId, userId);
+    return this.bookingsService.findByRoom(roomId, user.id);
   }
 }
