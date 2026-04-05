@@ -43,6 +43,17 @@ export class UsersResolver {
     return this.usersService.update(id, input);
   }
 
+   // ─── UPDATE AVATAR ───────────────────────────
+  @UseGuards(JwtGuard)
+  @Mutation(() => UserEntity)
+  updateAvatar(
+    @Args('avatarUrl') avatarUrl: string,  // ← just a string URL
+    @CurrentUser() user: any,
+  ) {
+    return this.usersService.updateAvatar(user.id, avatarUrl);
+  }
+
+
   // ─── DELETE USER ────────────────────────────
   @Mutation(() => Boolean)
   removeUser(@Args('id') id: string) {

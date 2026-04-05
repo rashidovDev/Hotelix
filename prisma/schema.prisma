@@ -21,6 +21,7 @@ model User {
   hotels       Hotel[]  
   bookings     Booking[]
   reviews      Review[]
+  avatar       String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 }

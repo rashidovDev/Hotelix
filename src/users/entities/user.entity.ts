@@ -23,6 +23,9 @@ export class UserEntity {
   @Field(() => Role)
   role: Role;
 
+  @Field({ nullable: true })
+  avatar?: string;    
+
   @Field()
   createdAt: Date;
 

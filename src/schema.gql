@@ -4,7 +4,6 @@
 
 type AuthResponse {
   accessToken: String!
-  refreshToken: String!
   user: UserEntity!
 }
 
@@ -101,6 +100,9 @@ type Mutation {
   updateHotel(id: String!, input: UpdateHotelInput!): HotelEntity!
   updateRoom(id: String!, input: UpdateRoomInput!): RoomEntity!
   updateUser(id: String!, input: UpdateUserInput!): UserEntity!
+  uploadAvatar(file: Upload!): String!
+  uploadImage(file: Upload!): String!
+  uploadImages(files: [Upload!]!): [String!]!
 }
 
 type Query {
@@ -189,6 +191,9 @@ input UpdateUserInput {
   firstName: String
   lastName: String
 }
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
 
 type UserEntity {
   createdAt: DateTime!

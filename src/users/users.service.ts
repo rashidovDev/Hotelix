@@ -23,6 +23,26 @@ export class UsersService {
     });
   }
 
+  // ─── UPDATE AVATAR ───────────────────────────
+async updateAvatar(id: string, avatarUrl: string) {
+  return this.prisma.user.update({
+    where: { id },
+    data: { avatar: avatarUrl },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      avatar: true,
+      role: true,
+      createdAt: true,
+      updatedAt: true,
+      password: false,
+      refreshToken: false,
+    },
+  });
+}
+
   // ─── GET ONE USER ───────────────────────────
   async findOne(id: string) {
     const user = await this.prisma.user.findUnique({

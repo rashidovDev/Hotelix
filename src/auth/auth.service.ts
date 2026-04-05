@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RegisterInput } from './dto/register.dto';
 import { LoginInput } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
+import { Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -17,17 +18,14 @@ export class AuthService {
   ) {}
 
   // ─── REGISTER ───────────────────────────────
-  async register(input: RegisterInput) {
-    // 1. Check if email already exists
+  async register(input: RegisterInput, res: Response) {
     const exists = await this.prisma.user.findUnique({
       where: { email: input.email },
     });
     if (exists) throw new ConflictException('Email already in use');
 
-    // 2. Hash password
     const hashedPassword = await bcrypt.hash(input.password, 10);
 
-    // 3. Create user in database
     const user = await this.prisma.user.create({
       data: {
         email: input.email,
@@ -37,19 +35,16 @@ export class AuthService {
       },
     });
 
-    // 4. Return tokens
-    return this.generateTokens(user.id, user.email, user.role);
+    return this.generateTokens(user.id, user.email, user.role, res);
   }
 
   // ─── LOGIN ──────────────────────────────────
-  async login(input: LoginInput) {
-    // 1. Find user by email
+  async login(input: LoginInput, res: Response) {
     const user = await this.prisma.user.findUnique({
       where: { email: input.email },
     });
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
-    // 2. Check password matches
     const passwordMatch = await bcrypt.compare(
       input.password,
       user.password,
@@ -58,27 +53,45 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // 3. Return tokens
-    return this.generateTokens(user.id, user.email, user.role);
+    return this.generateTokens(user.id, user.email, user.role, res);
   }
 
   // ─── REFRESH TOKENS ─────────────────────────
-  async refreshTokens(userId: string, email: string, role: string) {
-    return this.generateTokens(userId, email, role);
+  async refreshTokens(
+    userId: string,
+    email: string,
+    role: string,
+    res: Response,
+  ) {
+    return this.generateTokens(userId, email, role, res);
   }
 
   // ─── LOGOUT ─────────────────────────────────
-  async logout(userId: string) {
-    // wipe refresh token from database
+  async logout(userId: string, res: Response) {
+    // 1. wipe refresh token from database
     await this.prisma.user.update({
       where: { id: userId },
       data: { refreshToken: null },
     });
+
+    // 2. clear the cookie
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+    });
+
     return true;
   }
 
   // ─── GENERATE TOKENS ────────────────────────
-  async generateTokens(userId: string, email: string, role: string) {
+  async generateTokens(
+    userId: string,
+    email: string,
+    role: string,
+    res: Response,
+  ) {
     const payload = { sub: userId, email, role };
 
     // short lived — 15 minutes
@@ -101,6 +114,15 @@ export class AuthService {
       },
     });
 
+    // ✅ set refreshToken as HttpOnly cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,                                      // JS cannot access
+      secure: process.env.NODE_ENV === 'production',      // HTTPS only in prod
+      sameSite: 'strict',                                  // CSRF protection
+      maxAge: 7 * 24 * 60 * 60 * 1000,                   // 7 days in ms
+      path: '/',                                    // only sent to /graphql
+    });
+
     // fetch user without sensitive fields
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -117,6 +139,8 @@ export class AuthService {
       },
     });
 
-    return { accessToken, refreshToken, user };
+    // only accessToken returned in body
+    // refreshToken is in the cookie
+    return { accessToken, user };
   }
 }

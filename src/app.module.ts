@@ -14,12 +14,17 @@ import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
-    GraphQLModule.forRoot<ApolloDriverConfig>({
-    driver: ApolloDriver,
-    autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
-    sortSchema: true,
-    playground: true,
-    context: ({ req }) => ({ req }),
+  GraphQLModule.forRoot<ApolloDriverConfig>({
+  driver: ApolloDriver,
+  autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+  sortSchema: true,
+  playground: {
+    settings: {
+      'request.credentials': 'include',   // ← must be include
+      'editor.theme': 'dark',
+    },
+  },
+  context: ({ req, res }) => ({ req, res }),
 }),
     PrismaModule,
     AuthModule,

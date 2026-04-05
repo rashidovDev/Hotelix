@@ -6,9 +6,6 @@ export class AuthResponse {
   @Field()
   accessToken: string;
 
-  @Field()
-  refreshToken: string;
-
   @Field(() => UserEntity)  //  user data
   user: UserEntity;
 }
