@@ -18,7 +18,7 @@ export class HotelsService {
         ...input,
         ownerId,
         amenities: input.amenities ?? [],
-        images: input.images ?? [],
+        images: input.images ?? [], 
       },
     });
   }

@@ -5,6 +5,7 @@
 type AuthResponse {
   accessToken: String!
   refreshToken: String!
+  user: UserEntity!
 }
 
 type BookingEntity {
@@ -90,6 +91,8 @@ type Mutation {
   createReview(input: CreateReviewInput!): ReviewEntity!
   createRoom(input: CreateRoomInput!): RoomEntity!
   login(input: LoginInput!): AuthResponse!
+  logout: Boolean!
+  refreshTokens: AuthResponse!
   register(input: RegisterInput!): AuthResponse!
   removeHotel(id: String!): HotelEntity!
   removeReview(id: String!): Boolean!
@@ -110,6 +113,7 @@ type Query {
   findRoomsByHotel(hotelId: String!): [RoomEntity!]!
   findUser(id: String!): UserEntity!
   hotelReviews(hotelId: String!): [ReviewEntity!]!
+  me: UserEntity!
   myBookings: [BookingEntity!]!
   myHotels: [HotelEntity!]!
   myReviews: [ReviewEntity!]!

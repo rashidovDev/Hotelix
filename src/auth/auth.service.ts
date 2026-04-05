@@ -50,30 +50,50 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
     // 2. Check password matches
-    const passwordMatch = await bcrypt.compare(input.password, user.password);
-    if (!passwordMatch) throw new UnauthorizedException('Invalid credentials');
+    const passwordMatch = await bcrypt.compare(
+      input.password,
+      user.password,
+    );
+    if (!passwordMatch) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
 
     // 3. Return tokens
     return this.generateTokens(user.id, user.email, user.role);
+  }
+
+  // ─── REFRESH TOKENS ─────────────────────────
+  async refreshTokens(userId: string, email: string, role: string) {
+    return this.generateTokens(userId, email, role);
+  }
+
+  // ─── LOGOUT ─────────────────────────────────
+  async logout(userId: string) {
+    // wipe refresh token from database
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { refreshToken: null },
+    });
+    return true;
   }
 
   // ─── GENERATE TOKENS ────────────────────────
   async generateTokens(userId: string, email: string, role: string) {
     const payload = { sub: userId, email, role };
 
-    // Short lived — 15 minutes
+    // short lived — 15 minutes
     const accessToken = await this.jwt.signAsync(payload, {
       secret: process.env.JWT_ACCESS_SECRET,
       expiresIn: '15m',
     });
 
-    // Long lived — 7 days
+    // long lived — 7 days
     const refreshToken = await this.jwt.signAsync(payload, {
       secret: process.env.JWT_REFRESH_SECRET,
       expiresIn: '7d',
     });
 
-    // Save hashed refresh token to DB
+    // save hashed refresh token to database
     await this.prisma.user.update({
       where: { id: userId },
       data: {
@@ -81,6 +101,22 @@ export class AuthService {
       },
     });
 
-    return { accessToken, refreshToken };
+    // fetch user without sensitive fields
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+        password: false,
+        refreshToken: false,
+      },
+    });
+
+    return { accessToken, refreshToken, user };
   }
 }
