@@ -10,15 +10,17 @@ import { RoomsModule } from './rooms/rooms.module';
 import { BookingsModule } from './bookings/bookings.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { GatewayModule } from './gateway/gateway.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
-      driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'), // auto generates schema
-      sortSchema: true,
-      playground: true,   // visual GraphQL explorer at /graphql
-    }),
+    driver: ApolloDriver,
+    autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+    sortSchema: true,
+    playground: true,
+    context: ({ req }) => ({ req }),
+}),
     PrismaModule,
     AuthModule,
     UsersModule,
@@ -27,6 +29,7 @@ import { GatewayModule } from './gateway/gateway.module';
     BookingsModule,
     ReviewsModule,
     GatewayModule,
+    UploadModule,
   ],
 })
 export class AppModule {}
