@@ -62,6 +62,16 @@ export class BookingGateway
     });
   }
 
+  // ─── NOTIFY SUBSCRIBERS — new room added ─────
+notifyNewRoom(hotelId: string, roomName: string, capacity: number, price: number) {
+  this.server.to(`hotel:${hotelId}`).emit('newRoom', {
+    hotelId,
+    message: `New room available: ${roomName}`,
+    capacity,
+    price,
+  });
+}
+
   // ─── EMIT ROOM AVAILABLE ─────────────────────
   // called internally when a booking is cancelled
   notifyRoomAvailable(hotelId: string, roomId: string) {

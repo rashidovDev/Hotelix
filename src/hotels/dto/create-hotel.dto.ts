@@ -3,19 +3,19 @@ import { InputType, Field } from '@nestjs/graphql';
 @InputType()
 export class CreateHotelInput {
   @Field()
-  name: string;
+  name!: string;
 
   @Field({ nullable: true })
   description?: string;
 
   @Field()
-  location: string;
+  location!: string;
 
   @Field()
-  city: string;
+  city!: string;
 
   @Field()
-  country: string;
+  country!: string;
 
   @Field(() => [String], { nullable: true })
   amenities?: string[];

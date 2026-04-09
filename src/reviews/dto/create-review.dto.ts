@@ -3,11 +3,11 @@ import { InputType, Field, Int } from '@nestjs/graphql';
 @InputType()
 export class CreateReviewInput {
   @Field()
-  hotelId: string;
+  hotelId!: string;
 
   @Field(() => Int)
-  rating: number;
+  rating!: number;
 
   @Field()
-  comment: string;
+  comment!: string;
 }

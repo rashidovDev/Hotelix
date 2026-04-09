@@ -11,41 +11,56 @@ datasource db {
 // USER
 // ───────────────────────────
 model User {
-  id           String    @id @default(uuid())
-  email        String    @unique
-  password     String
-  firstName    String
-  lastName     String
-  role         Role      @default(GUEST)
-  refreshToken String?
-  hotels       Hotel[]  
-  bookings     Booking[]
-  reviews      Review[]
-  avatar       String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id            String              @id @default(uuid())
+  email         String              @unique
+  password      String
+  firstName     String
+  lastName      String
+  role          Role                @default(GUEST)
+  avatar        String?
+  refreshToken  String?
+  hotels        Hotel[]
+  bookings      Booking[]
+  reviews       Review[]
+  subscriptions HotelSubscription[] // ← add this
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
 }
-
 // ───────────────────────────
 // HOTEL
 // ───────────────────────────
 model Hotel {
-  id          String   @id @default(uuid())
-  name        String
-  ownerId     String                         // ← who owns this hotel
-  owner       User     @relation(fields: [ownerId], references: [id])
-  description String?
-  location    String
-  city        String
-  country     String
-  amenities   String[]
-  images      String[]
-  rating      Float?   @default(0)
-  rooms       Room[]
-  reviews     Review[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String              @id @default(uuid())
+  ownerId       String
+  owner         User                @relation(fields: [ownerId], references: [id])
+  name          String
+  description   String?
+  location      String
+  city          String
+  country       String
+  amenities     String[]
+  images        String[]
+  rating        Float?              @default(0)
+  rooms         Room[]
+  reviews       Review[]
+  subscriptions HotelSubscription[] // ← add this
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
 }
+// ───────────────────────────
+// HOTEL SUBSCRIPTION
+// ───────────────────────────
+model HotelSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  hotelId   String
+  hotel     Hotel    @relation(fields: [hotelId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, hotelId]) // ← user can only subscribe once per hotel
+}
+
 
 // ───────────────────────────
 // ROOM
@@ -57,7 +72,7 @@ model Room {
   name        String
   type        RoomType
   price       Decimal   @db.Decimal(10, 2)
-  capacity    Int
+  capacity    Int       // ← max number of guests
   description String?
   images      String[]
   bookings    Booking[]
@@ -76,6 +91,7 @@ model Booking {
   room        Room          @relation(fields: [roomId], references: [id])
   checkIn     DateTime
   checkOut    DateTime
+  guests      Int           @default(1)   // ← add default value
   totalPrice  Decimal       @db.Decimal(10, 2)
   status      BookingStatus @default(PENDING)
   createdAt   DateTime      @default(now())

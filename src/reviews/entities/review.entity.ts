@@ -3,20 +3,20 @@ import { ObjectType, Field, Int } from '@nestjs/graphql';
 @ObjectType()
 export class ReviewEntity {
   @Field()
-  id: string;
+  id!: string;
 
   @Field()
-  userId: string;
+  userId!: string;
 
   @Field()
-  hotelId: string;
+  hotelId!: string;
 
   @Field(() => Int)
-  rating: number;
+  rating!: number;
 
   @Field()
-  comment: string;
+  comment!: string;
 
   @Field()
-  createdAt: Date;
+  createdAt!: Date;
 }

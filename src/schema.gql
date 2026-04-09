@@ -11,7 +11,9 @@ type BookingEntity {
   checkIn: DateTime!
   checkOut: DateTime!
   createdAt: DateTime!
+  guests: Int!
   id: String!
+  priceSummary: PriceSummary
   roomId: String!
   status: BookingStatus!
   totalPrice: Float!
@@ -29,6 +31,7 @@ enum BookingStatus {
 input CreateBookingInput {
   checkIn: DateTime!
   checkOut: DateTime!
+  guests: Int!
   roomId: String!
 }
 
@@ -97,12 +100,25 @@ type Mutation {
   removeReview(id: String!): Boolean!
   removeRoom(id: String!): Boolean!
   removeUser(id: String!): Boolean!
+  subscribeToHotel(hotelId: String!): SubscriptionEntity!
+  unsubscribeFromHotel(hotelId: String!): Boolean!
+  updateAvatar(avatarUrl: String!): UserEntity!
   updateHotel(id: String!, input: UpdateHotelInput!): HotelEntity!
   updateRoom(id: String!, input: UpdateRoomInput!): RoomEntity!
   updateUser(id: String!, input: UpdateUserInput!): UserEntity!
   uploadAvatar(file: Upload!): String!
   uploadImage(file: Upload!): String!
   uploadImages(files: [Upload!]!): [String!]!
+}
+
+type PriceSummary {
+  checkIn: DateTime!
+  checkOut: DateTime!
+  guests: Int!
+  nights: Int!
+  pricePerNight: Float!
+  roomName: String!
+  totalPrice: Float!
 }
 
 type Query {
@@ -115,10 +131,12 @@ type Query {
   findRoomsByHotel(hotelId: String!): [RoomEntity!]!
   findUser(id: String!): UserEntity!
   hotelReviews(hotelId: String!): [ReviewEntity!]!
+  isSubscribed(hotelId: String!): Boolean!
   me: UserEntity!
   myBookings: [BookingEntity!]!
   myHotels: [HotelEntity!]!
   myReviews: [ReviewEntity!]!
+  mySubscriptions: [SubscriptionEntity!]!
   roomBookings(roomId: String!): [BookingEntity!]!
   searchHotels(city: String, country: String): [HotelEntity!]!
 }
@@ -167,6 +185,13 @@ enum RoomType {
   SUITE
 }
 
+type SubscriptionEntity {
+  createdAt: DateTime!
+  hotelId: String!
+  id: String!
+  userId: String!
+}
+
 input UpdateHotelInput {
   amenities: [String!]
   city: String
@@ -187,6 +212,7 @@ input UpdateRoomInput {
 }
 
 input UpdateUserInput {
+  avatar: String
   email: String
   firstName: String
   lastName: String
@@ -196,6 +222,7 @@ input UpdateUserInput {
 scalar Upload
 
 type UserEntity {
+  avatar: String
   createdAt: DateTime!
   email: String!
   firstName: String!

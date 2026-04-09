@@ -6,31 +6,46 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRoomInput } from './dto/create-room.dto';
 import { UpdateRoomInput } from './dto/update-room.dto';
+import { BookingGateway } from 'src/gateway/gateway.gateway';
 
 @Injectable()
 export class RoomsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService,
+     private gateway: BookingGateway, 
+  ) {}
 
   // ─── CREATE ROOM ─────────────────────────────
   async create(input: CreateRoomInput, userId: string) {
-    // make sure the hotel exists and belongs to this user
-    const hotel = await this.prisma.hotel.findUnique({
-      where: { id: input.hotelId },
-    });
+  // 1. make sure the hotel exists
+  const hotel = await this.prisma.hotel.findUnique({
+    where: { id: input.hotelId },
+  });
 
-    if (!hotel) throw new NotFoundException('Hotel not found');
+  if (!hotel) throw new NotFoundException('Hotel not found');
 
-    if (hotel.ownerId !== userId) {
-      throw new ForbiddenException('You do not own this hotel');
-    }
-
-    return this.prisma.room.create({
-      data: {
-        ...input,
-        images: input.images ?? [],
-      },
-    });
+  // 2. make sure the user owns this hotel
+  if (hotel.ownerId !== userId) {
+    throw new ForbiddenException('You do not own this hotel');
   }
+
+  // 3. create the room
+  const room = await this.prisma.room.create({
+    data: {
+      ...input,
+      images: input.images ?? [],
+    },
+  });
+
+  // 4. notify all hotel subscribers ─────────────
+  this.gateway.notifyNewRoom(
+    room.hotelId,
+    room.name,
+    room.capacity,
+    Number(room.price),
+  );
+
+  return room;
+}
 
   // ─── GET ALL ROOMS FOR A HOTEL ───────────────
   async findByHotel(hotelId: string) {

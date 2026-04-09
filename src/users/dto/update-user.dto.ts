@@ -3,14 +3,14 @@ import { InputType, Field } from '@nestjs/graphql';
 @InputType()
 export class UpdateUserInput {
   @Field({ nullable: true })
-  firstName?: string;
+  firstName!: string | undefined;
 
   @Field({ nullable: true })
-  lastName?: string;
+  lastName!: string | undefined;
 
   @Field({ nullable: true })
-  email?: string;
+  email!: string | undefined;
 
   @Field({ nullable: true })
-  avatar?: string;     
+  avatar!: string | undefined;     
 }

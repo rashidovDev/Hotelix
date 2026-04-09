@@ -4,20 +4,20 @@ import { RoomType } from '@prisma/client';
 @InputType()
 export class UpdateRoomInput {
   @Field({ nullable: true })
-  name?: string;
+  name!: string | undefined;
 
   @Field(() => RoomType, { nullable: true })
-  type?: RoomType;
+  type!: RoomType | undefined;
 
   @Field(() => Float, { nullable: true })
-  price?: number;
+  price!: number | undefined;
 
   @Field(() => Int, { nullable: true })
-  capacity?: number;
+  capacity!: number | undefined;
 
   @Field({ nullable: true })
-  description?: string;
+  description!: string | undefined;
 
   @Field(() => [String], { nullable: true })
-  images?: string[];
+  images!: string[] | undefined;
 }

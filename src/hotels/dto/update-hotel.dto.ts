@@ -3,23 +3,23 @@ import { InputType, Field } from '@nestjs/graphql';
 @InputType()
 export class UpdateHotelInput {
   @Field({ nullable: true })
-  name?: string;
+  name!: string | undefined;
 
   @Field({ nullable: true })
-  description?: string;
+  description!: string | undefined;
 
   @Field({ nullable: true })
-  location?: string;
+  location!: string | undefined;
 
   @Field({ nullable: true })
-  city?: string;
+  city!: string | undefined;
 
   @Field({ nullable: true })
-  country?: string;
+  country!: string | undefined;
 
   @Field(() => [String], { nullable: true })
-  amenities?: string[];
+  amenities!: string[] | undefined;
 
   @Field(() => [String], { nullable: true })
-  images?: string[];
+  images!: string[] | undefined;
 }

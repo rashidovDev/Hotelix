@@ -9,28 +9,28 @@ registerEnumType(Role, {
 @ObjectType()
 export class UserEntity {
   @Field()
-  id: string;
+  id!: string;
 
   @Field()
-  email: string;
+  email!: string;
 
   @Field()
-  firstName: string;
+  firstName!: string;
 
   @Field()
-  lastName: string;
+  lastName!: string;
 
   @Field(() => Role)
-  role: Role;
+  role!: Role;
 
   @Field({ nullable: true })
   avatar?: string;    
 
   @Field()
-  createdAt: Date;
+  createdAt!: Date;
 
   @Field()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   // ← no password field — never expose it!
 }

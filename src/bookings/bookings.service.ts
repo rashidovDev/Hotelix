@@ -17,72 +17,86 @@ export class BookingsService {
   ) {}
 
   // ─── CREATE BOOKING ──────────────────────────
-  async create(input: CreateBookingInput, userId: string) {
-    const { roomId, checkIn, checkOut } = input;
+async create(input: CreateBookingInput, userId: string) {
+  const { roomId, checkIn, checkOut, guests } = input;
 
-    // 1. Validate dates
-    if (checkIn >= checkOut) {
-      throw new BadRequestException('Check-in must be before check-out');
-    }
+  // 1. Validate dates
+  if (checkIn >= checkOut) {
+    throw new BadRequestException('Check-in must be before check-out');
+  }
+  if (checkIn < new Date()) {
+    throw new BadRequestException('Check-in cannot be in the past');
+  }
 
-    if (checkIn < new Date()) {
-      throw new BadRequestException('Check-in cannot be in the past');
-    }
+  return this.prisma.$transaction(async (tx) => {
+    // 2. Find room
+    const room = await tx.room.findUnique({
+      where: { id: roomId },
+      include: { hotel: true },
+    });
+    if (!room) throw new NotFoundException('Room not found');
 
-    // 2. Use transaction to prevent double booking
-    const booking = await this.prisma.$transaction(async (tx) => {
-      // 3. Find the room
-      const room = await tx.room.findUnique({
-        where: { id: roomId },
-        include: { hotel: true },  // ← include hotel for hotelId
-      });
-      if (!room) throw new NotFoundException('Room not found');
-
-      // 4. Check for conflicts
-      const conflict = await tx.booking.findFirst({
-        where: {
-          roomId,
-          status: { not: 'CANCELLED' },
-          AND: [
-            { checkIn: { lt: checkOut } },
-            { checkOut: { gt: checkIn } },
-          ],
-        },
-      });
-
-      if (conflict) {
-        throw new ConflictException(
-          'Room is already booked for these dates',
-        );
-      }
-
-      // 5. Calculate total price
-      const nights = Math.ceil(
-        (checkOut.getTime() - checkIn.getTime()) /
-        (1000 * 60 * 60 * 24),
+    // 3. Check guests does not exceed capacity
+    if (guests > room.capacity) {
+      throw new BadRequestException(
+        `This room fits maximum ${room.capacity} guests`,
       );
-      const totalPrice = Number(room.price) * nights;
+    }
 
-      // 6. Create booking
-      const newBooking = await tx.booking.create({
-        data: {
-          userId,
-          roomId,
-          checkIn,
-          checkOut,
-          totalPrice,
-          status: 'CONFIRMED',
-        },
-      });
+    // 4. Check availability
+    const conflict = await tx.booking.findFirst({
+      where: {
+        roomId,
+        status: { not: 'CANCELLED' },
+        AND: [
+          { checkIn: { lt: checkOut } },
+          { checkOut: { gt: checkIn } },
+        ],
+      },
+    });
+    if (conflict) {
+      throw new ConflictException('Room is already booked for these dates');
+    }
 
-      // 7. Emit real-time event ─────────────────
-      this.gateway.notifyRoomBooked(room.hotel.id, roomId);
+    // 5. Calculate price summary
+    const nights = Math.ceil(
+      (checkOut.getTime() - checkIn.getTime()) /
+      (1000 * 60 * 60 * 24),
+    );
+    const pricePerNight = Number(room.price);
+    const totalPrice = pricePerNight * nights;
 
-      return newBooking;
+    // 6. Build price summary
+    const priceSummary = {
+      roomName: room.name,
+      guests,
+      checkIn,
+      checkOut,
+      nights,
+      pricePerNight,
+      totalPrice,
+    };
+
+    // 7. Create booking
+    const booking = await tx.booking.create({
+      data: {
+        userId,
+        roomId,
+        checkIn,
+        checkOut,
+        guests,
+        totalPrice,
+        status: 'CONFIRMED',
+      },
     });
 
-    return booking;
-  }
+    // 8. Notify hotel subscribers
+    this.gateway.notifyRoomBooked(room.hotel.id, roomId);
+
+    // 9. Return booking with price summary
+    return { ...booking, priceSummary };
+  });
+}
 
   // ─── CANCEL BOOKING ──────────────────────────
   async cancel(id: string, userId: string) {

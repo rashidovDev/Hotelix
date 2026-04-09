@@ -9,32 +9,32 @@ registerEnumType(RoomType, {
 @ObjectType()
 export class RoomEntity {
   @Field()
-  id: string;
+  id!: string;
 
   @Field()
-  hotelId: string;
+  hotelId!: string;
 
   @Field()
-  name: string;
+  name!: string;
 
   @Field(() => RoomType)
-  type: RoomType;
+  type!: RoomType;
 
   @Field(() => Float)
-  price: number;
+  price!: number;
 
   @Field(() => Int)
-  capacity: number;
+  capacity!: number;
 
   @Field({ nullable: true })
   description?: string;
 
   @Field(() => [String])
-  images: string[];
+  images!: string[];
 
   @Field()
-  createdAt: Date;
+  createdAt!: Date;
 
   @Field()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

@@ -4,8 +4,8 @@ import { UserEntity } from 'src/users/entities/user.entity';
 @ObjectType()
 export class AuthResponse {
   @Field()
-  accessToken: string;
+  accessToken!: string;
 
   @Field(() => UserEntity)  //  user data
-  user: UserEntity;
+  user!: UserEntity;
 }

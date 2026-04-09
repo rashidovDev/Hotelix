@@ -11,6 +11,7 @@ import { BookingsModule } from './bookings/bookings.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { UploadModule } from './upload/upload.module';
+import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { UploadModule } from './upload/upload.module';
     ReviewsModule,
     GatewayModule,
     UploadModule,
+    SubscriptionsModule,
   ],
 })
 export class AppModule {}

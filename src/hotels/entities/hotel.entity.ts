@@ -3,38 +3,38 @@ import { ObjectType, Field, Float } from '@nestjs/graphql';
 @ObjectType()
 export class HotelEntity {
   @Field()
-  id: string;
+  id!: string;
 
   @Field()
-  ownerId: string;
+  ownerId!: string;
 
   @Field()
-  name: string;
+  name!: string;
 
   @Field({ nullable: true })
   description?: string;
 
   @Field()
-  location: string;
+  location!: string;
 
   @Field()
-  city: string;
+  city!: string;
 
   @Field()
-  country: string;
+  country!: string;
 
   @Field(() => [String])
-  amenities: string[];
+  amenities!: string[];
 
   @Field(() => [String])
-  images: string[];
+  images!: string[];
 
   @Field(() => Float, { nullable: true })
   rating?: number;
 
   @Field()
-  createdAt: Date;
+  createdAt!: Date;
 
   @Field()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

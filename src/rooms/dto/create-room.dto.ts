@@ -4,19 +4,19 @@ import { RoomType } from '@prisma/client';
 @InputType()
 export class CreateRoomInput {
   @Field()
-  hotelId: string;
+  hotelId!: string;
 
   @Field()
-  name: string;
+  name!: string;
 
   @Field(() => RoomType)
-  type: RoomType;
+  type!: RoomType;
 
   @Field(() => Float)
-  price: number;
+  price!: number;
 
   @Field(() => Int)
-  capacity: number;
+  capacity!: number;
 
   @Field({ nullable: true })
   description?: string;

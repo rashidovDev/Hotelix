@@ -1,13 +1,16 @@
-import { InputType, Field } from '@nestjs/graphql';
+import { InputType, Field, Int } from '@nestjs/graphql';
 
 @InputType()
 export class CreateBookingInput {
   @Field()
-  roomId: string;
+  roomId!: string;
 
   @Field()
-  checkIn: Date;
+  checkIn!: Date;
 
   @Field()
-  checkOut: Date;
+  checkOut!: Date;
+
+  @Field(() => Int)
+  guests!: number;       // ← add guests count
 }

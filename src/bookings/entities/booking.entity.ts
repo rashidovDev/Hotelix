@@ -1,4 +1,4 @@
-import { ObjectType, Field, Float, registerEnumType } from '@nestjs/graphql';
+import { ObjectType, Field, Float, Int, registerEnumType } from '@nestjs/graphql';
 import { BookingStatus } from '@prisma/client';
 
 registerEnumType(BookingStatus, {
@@ -6,32 +6,64 @@ registerEnumType(BookingStatus, {
   description: 'Status of a booking',
 });
 
+// ─── PRICE SUMMARY ───────────────────────────
+@ObjectType()
+export class PriceSummary {
+  @Field()
+  roomName!: string;        // ← add !
+
+  @Field(() => Int)
+  guests!: number;          // ← add !
+
+  @Field()
+  checkIn!: Date;           // ← add !
+
+  @Field()
+  checkOut!: Date;          // ← add !
+
+  @Field(() => Int)
+  nights!: number;          // ← add !
+
+  @Field(() => Float)
+  pricePerNight!: number;   // ← add !
+
+  @Field(() => Float)
+  totalPrice!: number;      // ← add !
+}
+
+// ─── BOOKING ENTITY ──────────────────────────
 @ObjectType()
 export class BookingEntity {
   @Field()
-  id: string;
+  id!: string;              // ← add !
 
   @Field()
-  userId: string;
+  userId!: string;          // ← add !
 
   @Field()
-  roomId: string;
+  roomId!: string;          // ← add !
 
   @Field()
-  checkIn: Date;
+  checkIn!: Date;           // ← add !
 
   @Field()
-  checkOut: Date;
+  checkOut!: Date;          // ← add !
+
+  @Field(() => Int)
+  guests!: number;          // ← add !
 
   @Field(() => Float)
-  totalPrice: number;
+  totalPrice!: number;      // ← add !
 
   @Field(() => BookingStatus)
-  status: BookingStatus;
+  status!: BookingStatus;   // ← add !
+
+  @Field(() => PriceSummary, { nullable: true })
+  priceSummary?: PriceSummary;
 
   @Field()
-  createdAt: Date;
+  createdAt!: Date;         // ← add !
 
   @Field()
-  updatedAt: Date;
+  updatedAt!: Date;         // ← add !
 }
