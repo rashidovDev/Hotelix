@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateHotelInput } from './dto/create-hotel.dto';
@@ -13,6 +14,10 @@ export class HotelsService {
 
   // ─── CREATE HOTEL ────────────────────────────
   async create(input: CreateHotelInput, ownerId: string) {
+    if ((input.images?.length ?? 0) > 5) {
+      throw new BadRequestException('A hotel can have up to 5 images');
+    }
+
     return this.prisma.hotel.create({
       data: {
         ...input,
@@ -62,6 +67,10 @@ export class HotelsService {
   // ─── UPDATE HOTEL ────────────────────────────
   async update(id: string, input: UpdateHotelInput, userId: string) {
     const hotel = await this.findOne(id);
+
+    if ((input.images?.length ?? 0) > 5) {
+      throw new BadRequestException('A hotel can have up to 5 images');
+    }
 
     // only the owner can update
     if (hotel.ownerId !== userId) {

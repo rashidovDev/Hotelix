@@ -146,6 +146,7 @@ input RegisterInput {
   firstName: String!
   lastName: String!
   password: String!
+  role: Role = GUEST
 }
 
 type ReviewEntity {

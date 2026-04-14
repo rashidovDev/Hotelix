@@ -7,6 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterInput } from './dto/register.dto';
 import { LoginInput } from './dto/login.dto';
+import { Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
 
@@ -32,6 +33,7 @@ export class AuthService {
         password: hashedPassword,
         firstName: input.firstName,
         lastName: input.lastName,
+        role: input.role ?? Role.GUEST,
       },
     });
 
@@ -78,7 +80,7 @@ export class AuthService {
     res.clearCookie('refreshToken', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       path: '/',
     });
 
@@ -118,7 +120,7 @@ export class AuthService {
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,                                      // JS cannot access
       secure: process.env.NODE_ENV === 'production',      // HTTPS only in prod
-      sameSite: 'strict',                                  // CSRF protection
+      sameSite: 'lax',                                     // works better across localhost ports
       maxAge: 7 * 24 * 60 * 60 * 1000,                   // 7 days in ms
       path: '/',                                    // only sent to /graphql
     });
@@ -131,6 +133,7 @@ export class AuthService {
         email: true,
         firstName: true,
         lastName: true,
+        avatar: true,
         role: true,
         createdAt: true,
         updatedAt: true,

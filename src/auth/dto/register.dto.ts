@@ -1,4 +1,5 @@
 import { InputType, Field } from '@nestjs/graphql';
+import { Role } from '@prisma/client';
 
 @InputType()
 export class RegisterInput {
@@ -13,4 +14,7 @@ export class RegisterInput {
 
   @Field()
   lastName!: string;
+
+  @Field(() => Role, { nullable: true, defaultValue: Role.GUEST })
+  role?: Role;
 }
