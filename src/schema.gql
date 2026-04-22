@@ -130,6 +130,7 @@ type Query {
   findRoom(id: String!): RoomEntity!
   findRoomsByHotel(hotelId: String!): [RoomEntity!]!
   findUser(id: String!): UserEntity!
+  getHotelSubscriptionCount(hotelId: String!): Float!
   hotelReviews(hotelId: String!): [ReviewEntity!]!
   isSubscribed(hotelId: String!): Boolean!
   me: UserEntity!
@@ -155,7 +156,15 @@ type ReviewEntity {
   hotelId: String!
   id: String!
   rating: Int!
+  user: ReviewUserEntity
   userId: String!
+}
+
+type ReviewUserEntity {
+  avatar: String
+  firstName: String!
+  id: String!
+  lastName: String!
 }
 
 """User roles"""

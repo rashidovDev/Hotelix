@@ -1,6 +1,21 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 
 @ObjectType()
+export class ReviewUserEntity {
+  @Field()
+  id!: string;
+
+  @Field()
+  firstName!: string;
+
+  @Field()
+  lastName!: string;
+
+  @Field({ nullable: true })
+  avatar?: string;
+}
+
+@ObjectType()
 export class ReviewEntity {
   @Field()
   id!: string;
@@ -19,4 +34,7 @@ export class ReviewEntity {
 
   @Field()
   createdAt!: Date;
+
+  @Field(() => ReviewUserEntity, { nullable: true })
+  user?: ReviewUserEntity;
 }

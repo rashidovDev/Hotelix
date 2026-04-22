@@ -46,4 +46,12 @@ export class SubscriptionsResolver {
   ) {
     return this.subscriptionsService.isSubscribed(user.id, hotelId);
   }
+
+  // ─── GET SUBSCRIPTION COUNT ──────────────────
+  @Query(() => Number)
+  getHotelSubscriptionCount(
+    @Args('hotelId') hotelId: string,
+  ) {
+    return this.subscriptionsService.getSubscriptionCount(hotelId);
+  }
 }

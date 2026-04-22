@@ -75,4 +75,11 @@ export class SubscriptionsService {
     });
     return !!existing;
   }
+
+  // ─── GET SUBSCRIPTION COUNT ──────────────────
+  async getSubscriptionCount(hotelId: string) {
+    return this.prisma.hotelSubscription.count({
+      where: { hotelId },
+    });
+  }
 }

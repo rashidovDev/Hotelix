@@ -24,23 +24,7 @@ export class ReviewsService {
     });
     if (!hotel) throw new NotFoundException('Hotel not found');
 
-    // 3. Check user has actually stayed at this hotel
-    const hasStayed = await this.prisma.booking.findFirst({
-      where: {
-        userId,
-        room: { hotelId: input.hotelId },
-        status: 'CONFIRMED',
-        checkOut: { lt: new Date() }, // check out date has passed
-      },
-    });
-
-    if (!hasStayed) {
-      throw new ForbiddenException(
-        'You can only review hotels you have stayed at',
-      );
-    }
-
-    // 4. Check user has not already reviewed this hotel
+    // 3. Check user has not already reviewed this hotel
     const alreadyReviewed = await this.prisma.review.findFirst({
       where: {
         userId,
@@ -54,7 +38,7 @@ export class ReviewsService {
       );
     }
 
-    // 5. Create the review
+    // 4. Create the review
     const review = await this.prisma.review.create({
       data: {
         userId,
@@ -64,7 +48,7 @@ export class ReviewsService {
       },
     });
 
-    // 6. Update hotel average rating
+    // 5. Update hotel average rating
     await this.updateHotelRating(input.hotelId);
 
     return review;
@@ -86,6 +70,7 @@ export class ReviewsService {
             id: true,
             firstName: true,
             lastName: true,
+            avatar: true,
           },
         },
       },
