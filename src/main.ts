@@ -16,6 +16,8 @@ async function bootstrap() {
     'http://localhost:3001',
     'http://127.0.0.1:3000',
     'http://127.0.0.1:3001',
+    'https://www.hotelix.xyz',
+    'https://hotelix.xyz',
     process.env.CLIENT_URL,
   ].filter(Boolean) as string[]);
 
