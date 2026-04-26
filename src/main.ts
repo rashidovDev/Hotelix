@@ -18,6 +18,7 @@ async function bootstrap() {
     'http://127.0.0.1:3001',
     'https://www.hotelix.xyz',
     'https://hotelix.xyz',
+    'https://hotelix-one.vercel.app',
     process.env.CLIENT_URL,
   ].filter(Boolean) as string[]);
 
